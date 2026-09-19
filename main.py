@@ -39,7 +39,7 @@ async def analyze(interaction: discord.Interaction, message: discord.Message) ->
 
 async def reload_loop() -> None:
     """Runs a continuous loop that allows the user
-    to refresh the functions in analysis.py by pressing 'r'"""
+    to refresh the function in analysis.py by pressing 'r'"""
     while True:
         line = await asyncio.to_thread(input)
         if line.strip() == "r":
