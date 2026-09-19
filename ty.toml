@@ -1,0 +1,5 @@
+[environment]
+python = "."
+
+[src]
+exclude = ["bin", "include", "lib", "lib64", "__pycache__"]
