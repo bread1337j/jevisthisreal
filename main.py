@@ -8,13 +8,14 @@ import importlib
 import analysis
 import response
 
-#anything but using more than one python file yo
+from pathlib import Path
+wordsfolder = ["words/" + f.name for f in Path("words").iterdir() if f.is_file()]
 
 class Bot(discord.Client):
     def __init__(self) -> None:
         super().__init__(intents=discord.Intents.none())
         self.tree = discord.app_commands.CommandTree(self)
-        self.words = response.getWords("words.txt")
+        self.words = response.getWords(wordsfolder)
     async def setup_hook(self) -> None:
         synced = await self.tree.sync()
         print(f"synced {len(synced)}: {[c.name for c in synced]}")
@@ -51,10 +52,9 @@ async def respond(interaction: discord.Interaction, message: discord.Message) ->
         return
     await interaction.response.defer(thinking=True)
     result: str = await (response.respondtots(text, message.jump_url, bot.words))
-    if(not result):
-        await interaction.followup.send("I have nothing to say here.")
-    else:
-        await interaction.followup.send(result[:2000])
+    if(not result.strip()):
+        result = "I have nothing to say here. Your hambug bores me."
+    await interaction.followup.send(result[:2000])
 
 
 
@@ -67,7 +67,7 @@ async def reload_loop() -> None:
             importlib.reload(analysis)
             importlib.reload(response)
             print("reloaded")
-            bot.words = response.getWords("words.txt")
+            bot.words = response.getWords(wordsfolder)
 
 @bot.event
 async def on_ready() -> None:
