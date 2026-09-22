@@ -19,8 +19,8 @@ async def respondtots(context: str, link: str, words: dict[str, None]) -> str:
     for i in range(0, 15):
         oldToken = token[:]
         token: str = await append_word(context, out, words)
-        #print(token)
-        if(token == oldToken or token == "stop"):
+        print(token)
+        if(token == oldToken):
             return out
         out += " "
         out += token
@@ -37,7 +37,7 @@ async def append_word(context: str, jevString: str, words: dict[str, None]) -> s
                        "yourResponse": "Your response so far is: " + jevString },
             questions={
                 "word": Choice(
-                    instructions="What is the next word in your response? Reply 'stop' if and only if you have nothing else to say. Your reply MUST contain something.",
+                    instructions="What is the next word in your response?",
                     criteria=words,
                     )
                 }

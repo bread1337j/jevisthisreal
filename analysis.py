@@ -33,10 +33,10 @@ async def analyzets(context: str, link: str) -> str:
         )
 
     builder = io.StringIO()
+    builder.write("[Original message]")
     builder.write("(")
     builder.write(link)
-    builder.write(")[Original message]")
-    builder.write("Detected realness: ")
+    builder.write(")\nDetected realness: ")
     builder.write(f'{int((response.nouls["realness"].noul) * 100)}%')
     builder.write("\nTone: ")
     builder.write(str(response.choices["tone"].choice))
