@@ -1,7 +1,7 @@
 from typesafe_sdk import AsyncTypeSafeClient, Choice, Noul, Score
 import io
 import random
-async def analyzets(context: str) -> str:
+async def analyzets(context: str, link: str) -> str:
     """analyzes ts"""
     async with AsyncTypeSafeClient() as client:
         response = await client.system_one(
@@ -33,6 +33,9 @@ async def analyzets(context: str) -> str:
         )
 
     builder = io.StringIO()
+    builder.write("(")
+    builder.write(link)
+    builder.write(")[Original message]")
     builder.write("Detected realness: ")
     builder.write(f'{int((response.nouls["realness"].noul) * 100)}%')
     builder.write("\nTone: ")

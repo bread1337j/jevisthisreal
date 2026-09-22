@@ -6,6 +6,7 @@ import io
 
 import importlib
 import analysis
+import response
 
 #anything but using more than one python file yo
 
@@ -13,6 +14,7 @@ class Bot(discord.Client):
     def __init__(self) -> None:
         super().__init__(intents=discord.Intents.none())
         self.tree = discord.app_commands.CommandTree(self)
+        self.words = response.getWords("words.txt")
     async def setup_hook(self) -> None:
         synced = await self.tree.sync()
         print(f"synced {len(synced)}: {[c.name for c in synced]}")
@@ -34,8 +36,27 @@ async def analyze(interaction: discord.Interaction, message: discord.Message) ->
                                                 ephemeral=True)
         return
     await interaction.response.defer(thinking=True)
-    result: str = await (analysis.analyzets(text))
+    result: str = await (analysis.analyzets(text, message.jump_url))
     await interaction.followup.send(result[:2000])
+
+@bot.tree.context_menu(name="respond")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def respond(interaction: discord.Interaction, message: discord.Message) -> None:
+    """Front end for the respondtots function"""
+    text = message.content
+    if not text:
+        await interaction.response.send_message("No text in that message.",
+                                                ephemeral=True)
+        return
+    await interaction.response.defer(thinking=True)
+    result: str = await (response.respondtots(text, message.jump_url, bot.words))
+    if(not result):
+        await interaction.followup.send("I have nothing to say here.")
+    else:
+        await interaction.followup.send(result[:2000])
+
+
 
 async def reload_loop() -> None:
     """Runs a continuous loop that allows the user
@@ -44,7 +65,9 @@ async def reload_loop() -> None:
         line = await asyncio.to_thread(input)
         if line.strip() == "r":
             importlib.reload(analysis)
+            importlib.reload(response)
             print("reloaded")
+            bot.words = response.getWords("words.txt")
 
 @bot.event
 async def on_ready() -> None:
