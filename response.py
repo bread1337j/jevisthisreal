@@ -27,7 +27,7 @@ async def respondtots(context: str, link: str, words: dict[str, dict[str, None]]
         oldToken = token[:]
         token: str = await append_word(context, out, words)
         print(token)
-        if(token == oldToken or token == "NONE"):
+        if(token == "NONE"):
             return out
         out += " "
         out += token
@@ -40,15 +40,20 @@ async def append_word(context: str, jevString: str, words: dict[str, dict[str, N
     pylint is making me write poetry"""
 
     wordtypelist = {x: None for x in words.keys()}
-    wordtypelist.update({"NONE": "The sentence is complete. There is nothing to add on. Do not choose this option lightly"})
+    wordtypelist.update({"NONE": "The sentence is complete. There is nothing to add on. Do not choose this option lightly."})
+    TASK = """You are writing a reply one word at a time. Each step you pick only the
+        next word. The finished reply should be a grammatical, relevant answer
+        to the message, and should end once the thought is complete."""
+    
 
     async with AsyncTypeSafeClient() as client:
         wordtype = await client.system_one(
-                state={"respondingTo": "You are responding to the following string: " + context,
-                       "yourResponse": "Your response so far is: " + jevString },
+                state={"task": TASK,
+                       "respondingTo": "You are responding to the following string: " + context,
+                       "yourResponse": "Your response so far is: " + (jevString.strip() or "(empty: you are choosing the first word)") },
             questions={
                 "word": Choice(
-                    instructions="What category of word is next in your response?",
+                    instructions="What category of word is next in your response? Avoid reusing words unless the grammar requires.",
                     criteria=wordtypelist,
                     )
                 }
@@ -58,12 +63,13 @@ async def append_word(context: str, jevString: str, words: dict[str, dict[str, N
         if(category == "NONE"):
             return "NONE"
         response = await client.system_one(
-                state={"respondingTo": "You are responding to the following string: " + context,
-                       "yourResponse": "Your response so far is: " + jevString,
+                state={"task": TASK,
+                       "respondingTo": "You are responding to the following string: " + context,
+                       "yourResponse": "Your response so far is: " + (jevString.strip() or "(empty: you are choosing the first word)"),
                        "wordType": "The next word must be a: " + category},
             questions={
                 "word": Choice(
-                    instructions="What is the next word in your response?",
+                    instructions="What is the next word in your response? Avoid reusing words unless the grammar requires.",
                     criteria=words[wordtype.choices["word"].choice],
                     )
                 }
